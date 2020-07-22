@@ -16,30 +16,30 @@ class Post_type {
         'supports' => array( 'title', 'thumbnail', 'custom-fields' )
     );
 
-    const TAXONOMY_PROP_CAT = array(
-        'label' => 'お知らせカテゴリ',
-        'singular_label' => 'お知らせカテゴリ',
-        'labels' => array(
-            'all_items' => 'お知らせカテゴリ一覧',
-            'add_new_item' => 'お知らせカテゴリを追加'
-        ),
-        'public' => true,
-        'show_ui' => true,
-        'show_in_nav_menus' => true,
-        'hierarchical' => true
-    );
+    // const TAXONOMY_PROP_CAT = array(
+    //     'label' => 'お知らせカテゴリ',
+    //     'singular_label' => 'お知らせカテゴリ',
+    //     'labels' => array(
+    //         'all_items' => 'お知らせカテゴリ一覧',
+    //         'add_new_item' => 'お知らせカテゴリを追加'
+    //     ),
+    //     'public' => true,
+    //     'show_ui' => true,
+    //     'show_in_nav_menus' => true,
+    //     'hierarchical' => true
+    // );
 
-    const TAXONOMY_PROP_TAG =array(
-        'label' => 'お知らせのタグ',
-        'singular_label' => 'お知らせのタグ',
-        'labels' => array(
-            'add_new_item' => 'お知らせのタグを追加'
-        ),
-        'public' => true,
-        'show_ui' => true,
-        'show_in_nav_menus' => true,
-        'hierarchical' => false
-    );
+    // const TAXONOMY_PROP_TAG =array(
+    //     'label' => 'お知らせのタグ',
+    //     'singular_label' => 'お知らせのタグ',
+    //     'labels' => array(
+    //         'add_new_item' => 'お知らせのタグを追加'
+    //     ),
+    //     'public' => true,
+    //     'show_ui' => true,
+    //     'show_in_nav_menus' => true,
+    //     'hierarchical' => false
+    // );
 
 
 
@@ -59,23 +59,23 @@ class Post_type {
     public function create_post_type() {
         register_post_type('hoge_custom_post', self::POST_TYPE_PROP);
 
-        //お知らせカテゴリ
-        register_taxonomy(
-            'info-cat',
-            'infopage',
-            self::TAXONOMY_PROP_CAT
-        );
-            //お知らせタグ
-        register_taxonomy(
-            'info-tag',
-            'infopage',
-            self::TAXONOMY_PROP_TAG
-        );
+        // //お知らせカテゴリ
+        // register_taxonomy(
+        //     'info-cat',
+        //     'hoge_custom_post',
+        //     self::TAXONOMY_PROP_CAT
+        // );
+        //     //お知らせタグ
+        // register_taxonomy(
+        //     'info-tag',
+        //     'hoge_custom_post',
+        //     self::TAXONOMY_PROP_TAG
+        // );
 
         //カテゴリを投稿と共通設定にする
-        register_taxonomy_for_object_type('category', 'infopage');
+        // register_taxonomy_for_object_type('category', 'hoge_custom_post');
         //タグを投稿と共通設定にする
-        register_taxonomy_for_object_type('post_tag', 'infopage');
+        // register_taxonomy_for_object_type('post_tag', 'hoge_custom_post');
     }
 
     public function add_custom_fields() {
