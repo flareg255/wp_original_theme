@@ -8,6 +8,7 @@
                     ?>
                         <h2><?php the_title(); ?></h2>
                         <section>
+                            single
                             <?php the_content(); ?>
                         </section>
                     <?php 

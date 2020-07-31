@@ -11,6 +11,14 @@ class Initial {
         add_action( 'wp_enqueue_scripts', array( $this, 'enq_front' ) );
         add_action( 'admin_menu', array( $this, 'rm_menu' ) );
 
+        add_theme_support( 'post-thumbnails' );
+        add_image_size( 'org_thumb100', 100, 100, true );
+        add_image_size( 'org_thumb150', 150, 150, true );
+        add_filter( 'post_thumbnail_html', array( $this, 'thumbnail_wh_delete' ) );
+
+        add_action( 'after_setup_theme', array( $this, 'setup_logo' ) );
+        add_filter( 'get_custom_logo', array( $this, 'add_custom_logo_url' ) );
+
         $this->init_post_type();
     }
 
@@ -45,6 +53,27 @@ class Initial {
 
     public function rm_menu (){
         remove_menu_page( 'edit.php' );
+    }
+
+    public function thumbnail_wh_delete( $html ){
+        $html = preg_replace('/(width|height)="\d*"\s/', '', $html);
+        return $html;
+    }
+
+    public function setup_logo() {
+        add_theme_support('custom-logo');
+    }
+
+    public function add_custom_logo_url() {
+        $custom_logo_id = get_theme_mod( 'custom_logo' );
+        $html = sprintf( '<a href="%1$s" class="custom-logo-link" rel="home" itemprop="url">%2$s</a>',
+                    esc_url( home_url() ),
+                    wp_get_attachment_image( $custom_logo_id, 'full', false, array(
+                        'class'    => 'w-100',
+                    ) )
+                );
+        $html = preg_replace('/(width|height)="\d*"\s/', '', $html);
+        return $html;
     }
 
     public function init_post_type() {

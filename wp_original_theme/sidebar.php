@@ -1,5 +1,13 @@
             <div id="leftSide" class="col-3">
                 <section>
+                    <h1>
+                        <?php
+                            global $theme_func;
+                            $theme_func->set_logo();
+                        ?>
+                    </h1>
+                </section>
+                <section>
                     <?php
                         $defaults = array(
                             'menu'            => '',
