@@ -82,7 +82,7 @@ class Post_type {
         add_meta_box(
             'custom_setting', //編集画面セクションのHTML ID
             'カスタム情報', //編集画面セクションのタイトル、画面上に表示される
-            array( $this, 'insert_custom_fields' ), //編集画面セクションにHTML出力する関数
+            array( $this, 'insert_custom_fields'), //編集画面セクションにHTML出力する関数
             'hoge_custom_post', //投稿タイプ名
             'normal' //編集画面セクションが表示される部分
         );
@@ -95,68 +95,114 @@ class Post_type {
     public function insert_custom_fields(){
         global $post;
         //get_post_meta関数を使ってpostmeta情報を取得
-        $hoge_name = get_post_meta(
-                         $post->ID, //投稿ID
-                         'hoge_name', //キー名
-                         true //戻り値を文字列にする場合true(falseの場合は配列)
-                    );
-        $hoge_thumbnail = get_post_meta($post->ID,'hoge_thumbnail',true);
-        echo '名前： <input type="text" name="hoge_name" value="'.$hoge_name.'" /><br>';
-        echo '画像： <input type="file" name="hoge_thumbnail" accept="image/*" /><br>';
-        if(isset($hoge_thumbnail) && strlen($hoge_thumbnail) > 0){
+        wp_nonce_field('wp-nonce-key', '_wp_nonce');
+
+        echo '<div class="photos">';
+        for($i = 1; $i < 5; $i++) {
+            $imageName = get_post_meta(
+                $post->ID, //投稿ID
+                'image' . $i, //キー名
+                true //戻り値を文字列にする場合true(falseの場合は配列)
+            );
+            echo '<div class="photoItem">';
+            $image_thumbnail = get_post_meta($post->ID,'image_thumbnail' . $i,true);
+            echo '名前' . $i . '： <input type="text" name="image' . $i . '" value="' . $imageName .'" /><br>';
+            echo '画像' . $i . '： <input type="file" name="image_thumbnail' . $i . '" accept="image/*" /><br>';
+            if(isset($image_thumbnail) && strlen($image_thumbnail) > 0){
             //hoge_thumbnailキーのpostmeta情報がある場合は、画像を表示
             //$hoge_thumbnailには、後述するattach_idが格納されているので、wp_get_attachment_url関数にそのattach_idを渡して画像のURLを取得する
-            echo '<img style="width: 200px;display: block;margin: 1em;" src="'.wp_get_attachment_url($hoge_thumbnail).'">';
+                $img_src_str = wp_get_attachment_image_src($image_thumbnail, 'org_thumb150');
+                echo '<img src="'.$img_src_str[0].'"><br>';
+                echo '<input type="hidden" name="del_id' . $i . '" value="' . $image_thumbnail . '">';
+                echo '<label><input type="checkbox" name="del' . $i . '[]" value="' . $image_thumbnail . '">' . 'この画像を削除する' . '</label><br>';
+            }
+            echo '</div>';
+        }
+        echo '</div>';
+
+        $get_tools = get_post_meta( $post->ID,'tools',true );
+        $tools = $get_tools ? $get_tools : array();
+        $data = array("不明", "鉛筆", "紙", "CLIP STUDIO PAINT", "ペンタブ", "液タブ");
+        echo '<div class="customTitle">タイプ</div>';
+        foreach ( $data as $d ) {
+            //取得したデータをin_array検索 $toolsの値の中に$dataと同じ物があればcheckdを付与
+            if ( in_array($d, $tools) ) { $check = "checked"; } else { $check = ""; }
+            //複数選択の場合は、name=toolsではなくname=tools[]とする
+            echo '<label><input type="checkbox" name="tools[]" value="' . esc_attr($d) . '" ' . $check . '>' . esc_html($d) . '</label><br>';
         }
     }
 
     public function save_custom_fields( $post_id ) {
-        if(isset($_POST['hoge_name'])){
-            //hoge_nameキーで、$_POST['hoge_name']を保存
-            update_post_meta($post_id, 'hoge_name', $_POST['hoge_name']);
-        }else{
-            //hoge_nameキーの情報を削除
-            delete_post_meta($post_id, 'hoge_name');
-        }
-
-        if(isset($_FILES['hoge_thumbnail']) && $_FILES["hoge_thumbnail"]["size"] !== 0){
-            $file_name = basename($_FILES['hoge_thumbnail']['name']);
-            $file_name = trim($file_name);
-            $file_name = str_replace(" ", "-", $file_name);
-
-            $wp_upload_dir = wp_upload_dir(); //現在のuploadディクレトリのパスとURLを入れた配列
-            $upload_file = $_FILES['hoge_thumbnail']['tmp_name'];
-            $upload_path = $wp_upload_dir['path'].'/'.$file_name; //uploadsディレクトリ以下などに配置する場合は$wp_upload_dir['basedir']を利用する
-            //画像ファイルをuploadディクレトリに移動させる
-            move_uploaded_file($upload_file,$upload_path);
-
-            $file_type = $_FILES['hoge_thumbnail']['type'];
-            //正規表現で拡張子なしのスラッグ名を生成
-            $slug_name = preg_replace('/\.[^.]+$/', '', basename($upload_path));
-
-            if(file_exists($upload_path)){
-                //保存に成功してファイルが存在する場合は、wp_postsテーブルなどに情報を追加
-                $attachment = array(
-                    'guid'           => $wp_upload_dir['url'].'/'.basename($file_name),
-                    'post_mime_type' => $file_type,
-                    'post_title' => $slug_name,
-                    'post_content' => '',
-                    'post_status' => 'inherit'
-                );
-                //添付ファイルを追加
-                $attach_id = wp_insert_attachment($attachment,$upload_path,$post_id);
-                if(!function_exists('wp_generate_attachment_metadata')){
-                    require_once(ABSPATH . "wp-admin" . '/includes/image.php');
+        // echo '<pre>';
+        // var_dump($_POST);
+        // echo '</pre>';
+        if ( isset($_POST['_wp_nonce']) && $_POST['_wp_nonce'] ) {
+            for($i = 1; $i < 5; $i++) {
+                if(isset($_POST['image'. $i])){
+                    //hoge_nameキーで、$_POST['hoge_name']を保存
+                    update_post_meta($post_id, 'image'. $i, $_POST['image'. $i]);
+                }else{
+                    //hoge_nameキーの情報を削除
+                    delete_post_meta($post_id, 'image'. $i);
                 }
-                //添付ファイルのメタデータを生成し、wp_postsテーブルに情報を保存
-                $attach_data = wp_generate_attachment_metadata($attach_id,$upload_path);
-                wp_update_attachment_metadata($attach_id,$attach_data);
-                //wp_postmetaテーブルに画像のattachment_id(wp_postsテーブルのレコードのID)を保存
-                update_post_meta($post_id, 'hoge_thumbnail',$attach_id);
-            }else{
-                //保存失敗
-                echo '画像保存に失敗しました';
-                exit;
+                if(isset($_POST['del'. $i]) && $_POST['del'. $i][0]){
+                    // echo '<pre>';
+                    // echo 'del_id'. $i;
+                    // var_dump( $i );
+                    // var_dump($_POST['del_id'. $i]);
+                    // var_dump(wp_get_attachment_metadata( $_POST['del_id'. $i] ));
+                    // echo '</pre>';
+                    wp_delete_attachment( $_POST['del_id'. $i] );
+                }else{
+                    if(isset($_FILES['image_thumbnail' . $i]) && $_FILES['image_thumbnail' . $i]['size'] !== 0){
+                        $file_name = basename($_FILES['image_thumbnail' . $i]['name']);
+                        $file_name = trim($file_name);
+                        $file_name = str_replace(" ", "-", $file_name);
+
+                        $wp_upload_dir = wp_upload_dir(); //現在のuploadディクレトリのパスとURLを入れた配列
+                        $upload_file = $_FILES['image_thumbnail' . $i]['tmp_name'];
+                        $upload_path = $wp_upload_dir['path'].'/'.$file_name; //uploadsディレクトリ以下などに配置する場合は$wp_upload_dir['basedir']を利用する
+                        //画像ファイルをuploadディクレトリに移動させる
+                        move_uploaded_file($upload_file,$upload_path);
+
+                        $file_type = $_FILES['image_thumbnail' . $i]['type'];
+                        //正規表現で拡張子なしのスラッグ名を生成
+                        $slug_name = preg_replace('/\.[^.]+$/', '', basename($upload_path));
+
+                        if(file_exists($upload_path)){
+                            //保存に成功してファイルが存在する場合は、wp_postsテーブルなどに情報を追加
+                            $attachment = array(
+                                'guid'           => $wp_upload_dir['url'].'/'.basename($file_name),
+                                'post_mime_type' => $file_type,
+                                'post_title' => $slug_name,
+                                'post_content' => '',
+                                'post_status' => 'inherit'
+                            );
+                            //添付ファイルを追加
+                            $attach_id = wp_insert_attachment($attachment,$upload_path,$post_id);
+                            if(!function_exists('wp_generate_attachment_metadata')){
+                                require_once(ABSPATH . "wp-admin" . '/includes/image.php');
+                            }
+                            //添付ファイルのメタデータを生成し、wp_postsテーブルに情報を保存
+                            $attach_data = wp_generate_attachment_metadata($attach_id,$upload_path);
+                            wp_update_attachment_metadata($attach_id,$attach_data);
+                            //wp_postmetaテーブルに画像のattachment_id(wp_postsテーブルのレコードのID)を保存
+                            update_post_meta($post_id, 'image_thumbnail' . $i, $attach_id);
+                        }else{
+                            //保存失敗
+                            echo '画像保存に失敗しました';
+                            exit;
+                        }
+                    }
+                }
+            }
+
+            if ( check_admin_referer('wp-nonce-key', '_wp_nonce') ) {
+                if ( isset($_POST['tools']) && $_POST['tools'] ) {
+                    update_post_meta( $post_id, 'tools', $_POST['tools'] );
+                } else {
+                    delete_post_meta( $post_id, 'tools', get_post_meta($post_id, 'tools', true) );
+                }
             }
         }
     }

@@ -19,6 +19,10 @@
         <?php
             echo '<pre>';
             var_dump(get_post_meta($post->ID , '' ,true));
+            
+
+            $items  = get_post_meta( $post->ID, "tools", true );
+            var_dump($items);
             echo '</pre>';
         ?>
         <?php

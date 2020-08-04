@@ -19,11 +19,15 @@ class Initial {
         add_action( 'after_setup_theme', array( $this, 'setup_logo' ) );
         add_filter( 'get_custom_logo', array( $this, 'add_custom_logo_url' ) );
 
+        add_filter('admin_footer_text', '__return_empty_string');
+        add_action( 'admin_menu', array( $this, 'remove_footer_version' ) );
+
+        add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_style_script' ) );
+
         $this->init_post_type();
     }
 
     public function init_rm() {
-
         remove_action('wp_head', 'print_emoji_detection_script', 7);
         remove_action('wp_print_styles', 'print_emoji_styles');
         remove_action( 'wp_head', 'feed_links_extra', 3 );
@@ -37,18 +41,15 @@ class Initial {
         remove_action( 'wp_head', 'wp_generator' );
         remove_filter('the_content', 'wpautop');
         remove_filter('the_excerpt', 'wpautop');
-
     }
 
     public function enq_front() {
-
         wp_deregister_script('jquery');
 
         wp_enqueue_style( 'boot-strap-css', get_template_directory_uri() . '/css/bootstrap.min.css', array(), null, false );
         wp_enqueue_style( 'style', get_stylesheet_uri() );
         wp_enqueue_script( 'jquery', get_template_directory_uri() . '/js/jquery.min.js', array(), null, false );
         wp_enqueue_script( 'boot-strap-js', get_template_directory_uri() . '/js/bootstrap.bundle.min.js', array('jquery'), null, false );
-
     }
 
     public function rm_menu (){
@@ -58,6 +59,10 @@ class Initial {
     public function thumbnail_wh_delete( $html ){
         $html = preg_replace('/(width|height)="\d*"\s/', '', $html);
         return $html;
+    }
+
+    public function remove_footer_version() {
+        remove_filter('update_footer', 'core_update_footer');
     }
 
     public function setup_logo() {
@@ -74,6 +79,11 @@ class Initial {
                 );
         $html = preg_replace('/(width|height)="\d*"\s/', '', $html);
         return $html;
+    }
+
+    public function enqueue_admin_style_script() {
+        wp_enqueue_style( 'admin-style', get_template_directory_uri() . '/admin/style.css' );
+        wp_enqueue_script( 'admin-script', get_template_directory_uri() . '/admin/script.js', array(), '1.0.0', true );
     }
 
     public function init_post_type() {

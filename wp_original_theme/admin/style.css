@@ -1,0 +1,22 @@
+@charset "utf-8";
+
+.photos {
+    display: flex;
+    border-bottom: 1px solid #ccd0d4;
+    padding-bottom: 1rem;
+}
+
+.photoItem {
+    width: 23%;
+    margin-right: 2%;
+}
+
+.photoItem img{
+    width: 100%;
+}
+
+.customTitle{
+    font-size: 1.2em;
+    font-weight: bold;
+    line-height: 2em;
+}
